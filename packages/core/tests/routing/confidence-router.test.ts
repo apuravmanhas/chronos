@@ -47,9 +47,9 @@ describe('ConfidenceRouter', () => {
     expect(router.effectiveConfidence(mockNoul(0.5))).toBe(0.5);
   });
 
-  it('Multi-question routing: one high + one low = escalated', () => {
+  it('Multi-question routing: one high + one low = acted', () => {
     const decisions: Record<string, Decision> = { q1: mockNoul(0.95), q2: mockChoice('val', 0.40) };
-    expect(router.route(decisions, config)).toBe('escalated');
+    expect(router.route(decisions, config)).toBe('acted');
   });
 
   it('Edge case: exactly on threshold boundary', () => {

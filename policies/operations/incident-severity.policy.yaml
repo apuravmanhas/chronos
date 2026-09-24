@@ -1,0 +1,53 @@
+apiVersion: chronos/v1
+kind: DecisionPolicy
+metadata:
+  name: incident-severity
+  version: "1.0.0"
+  description: "Classify incident severity from alert data and determine response priority"
+
+questions:
+  is_customer_facing:
+    type: noul
+    question: "Does this incident directly impact customer-facing services or user experience?"
+  severity:
+    type: choice
+    question: "What is the appropriate incident severity level?"
+    options:
+      - sev1_critical
+      - sev2_major
+      - sev3_minor
+      - sev4_low
+  urgency:
+    type: score
+    question: "Rate the urgency of response required for this incident"
+    min: 0
+    max: 100
+  action:
+    type: choice
+    question: "What is the recommended first response action?"
+    options:
+      - page_oncall
+      - create_ticket
+      - auto_remediate
+      - monitor
+      - ignore
+
+routing:
+  primary: jev
+  fallback:
+    - provider: rules
+      condition: "provider_error"
+
+confidence:
+  actThreshold: 0.85
+  fallbackThreshold: 0.60
+  escalationThreshold: 0.40
+
+guards:
+  post:
+    - name: no_ignore_customer_facing
+      rule: "!(action.value === 'ignore' && is_customer_facing.value === true)"
+      description: "Never ignore customer-facing incidents"
+    - name: sev1_must_page
+      rule: "!(severity.value === 'sev1_critical' && action.value !== 'page_oncall')"
+      description: "SEV1 incidents must always page on-call"

@@ -1,0 +1,42 @@
+apiVersion: chronos/v1
+kind: DecisionPolicy
+metadata:
+  name: content-safety
+  version: "1.0.0"
+  description: "Evaluate user-generated content for safety and appropriateness"
+
+questions:
+  is_harmful:
+    type: noul
+    question: "Does this content contain harmful, hateful, or dangerous material?"
+  toxicity:
+    type: score
+    question: "Rate the toxicity level of this content"
+    min: 0
+    max: 100
+  category:
+    type: choice
+    question: "What is the primary concern category for this content?"
+    options:
+      - safe
+      - mild_language
+      - harassment
+      - hate_speech
+      - violence
+      - sexual_content
+      - self_harm
+      - misinformation
+
+routing:
+  primary: jev
+
+confidence:
+  actThreshold: 0.85
+  fallbackThreshold: 0.65
+  escalationThreshold: 0.40
+
+guards:
+  pre:
+    - name: has_content
+      rule: "state != null && (typeof state === 'string' || typeof state.content === 'string')"
+      description: "Content must be provided"

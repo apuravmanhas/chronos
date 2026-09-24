@@ -1,0 +1,46 @@
+apiVersion: chronos/v1
+kind: DecisionPolicy
+metadata:
+  name: request-safety
+  version: "1.0.0"
+  description: "Evaluate incoming API request safety and classify threat level"
+
+questions:
+  is_suspicious:
+    type: noul
+    question: "Does this request exhibit suspicious patterns such as injection attempts, credential stuffing, scraping, or automated abuse?"
+  risk_level:
+    type: score
+    question: "Rate the overall security risk level of this request"
+    min: 0
+    max: 100
+  action:
+    type: choice
+    question: "What security action should be taken for this request?"
+    options:
+      - allow
+      - rate_limit
+      - challenge
+      - block
+      - escalate
+
+routing:
+  primary: jev
+  fallback:
+    - provider: rules
+      condition: "provider_error || latency > 2000"
+
+confidence:
+  actThreshold: 0.90
+  fallbackThreshold: 0.70
+  escalationThreshold: 0.50
+
+guards:
+  pre:
+    - name: has_request_data
+      rule: "state != null && typeof state === 'object'"
+      description: "Ensure request data is provided"
+  post:
+    - name: no_block_low_risk
+      rule: "!(action.value === 'block' && risk_level.value < 0.5)"
+      description: "Do not block requests with very low risk"

@@ -1,0 +1,38 @@
+apiVersion: chronos/v1
+kind: DecisionPolicy
+metadata:
+  name: refund-risk
+  version: "1.0.0"
+  description: "Evaluate customer refund requests and dispute claims"
+
+questions:
+  fraud_probability:
+    type: score
+    question: "Rate the probability that this refund request is fraudulent, abusive, or violates terms of service"
+    min: 0
+    max: 100
+  action:
+    type: choice
+    question: "What action should be taken for this refund request?"
+    options:
+      - approve
+      - reject
+      - escalate
+
+routing:
+  primary: jev
+
+confidence:
+  actThreshold: 0.80
+  fallbackThreshold: 0.70
+  escalationThreshold: 0.50
+
+guards:
+  pre:
+    - name: valid_amount
+      rule: "state != null && typeof state.amount === 'number' && state.amount > 0"
+      description: "Ensure refund amount is valid"
+  post:
+    - name: high_value_approval_lock
+      rule: "!(action.value === 'approve' && state.amount > 1000)"
+      description: "CRITICAL: Never auto-approve refunds over $1,000, regardless of AI confidence."

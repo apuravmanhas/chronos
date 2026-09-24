@@ -1,0 +1,28 @@
+apiVersion: chronosbench/v1
+kind: BenchmarkScenario
+metadata:
+  name: security-classification
+  description: "HTTP request security classification benchmark"
+  version: "1.0.0"
+dataset: ../datasets/security-requests.jsonl
+policy: ../../policies/security/request-safety.policy.yaml
+metrics:
+  - accuracy
+  - precision
+  - recall
+  - f1
+  - calibration_ece
+  - latency_p50
+  - latency_p95
+  - latency_p99
+  - cost_per_1k
+labels:
+  is_suspicious:
+    type: noul
+    field: labels.is_suspicious
+  risk_level:
+    type: score
+    field: labels.risk_level
+  action:
+    type: choice
+    field: labels.action

@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+*.db
+coverage
+.turbo
+
+*.log
+.DS_Store
+*.tgz
